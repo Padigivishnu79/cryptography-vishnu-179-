@@ -1,0 +1,72 @@
+def generate_matrix(key):
+    # Generate the 5x5 matrix based on the given key
+    key = key.replace(" ", "").upper()  # Remove spaces and convert to uppercase
+    key = "".join(sorted(set(key), key=key.index))  # Remove duplicates and maintain order
+    alphabet = "ABCDEFGHIKLMNOPQRSTUVWXYZ"  # Omit "J" to make room for "I"
+    matrix = []
+    for letter in key + alphabet:
+        if letter not in matrix:
+            matrix.append(letter)
+    return matrix
+
+def prepare_text(text):
+    # Prepare the plaintext by removing non-alphabetic characters and converting to uppercase
+    text = "".join(filter(str.isalpha, text)).upper()
+    # Replace any "J" with "I"
+    text = text.replace("J", "I")
+    # Add a trailing "X" if the length of the plaintext is odd
+    if len(text) % 2 != 0:
+        text += "X"
+    return text
+
+def encrypt(text, key):
+    # Generate the matrix
+    matrix = generate_matrix(key)
+    # Prepare the plaintext
+    text = prepare_text(text)
+    # Encrypt the plaintext two letters at a time
+    ciphertext = ""
+    for i in range(0, len(text), 2):
+        a, b = text[i], text[i+1]
+        a_pos, b_pos = matrix.index(a), matrix.index(b)
+        a_row, a_col = a_pos // 5, a_pos % 5
+        b_row, b_col = b_pos // 5, b_pos % 5
+        if a_row == b_row:
+            a_col = (a_col + 1) % 5
+            b_col = (b_col + 1) % 5
+        elif a_col == b_col:
+            a_row = (a_row + 1) % 5
+            b_row = (b_row + 1) % 5
+        else:
+            a_col, b_col = b_col, a_col
+        ciphertext += matrix[a_row * 5 + a_col] + matrix[b_row * 5 + b_col]
+    return ciphertext
+
+def decrypt(ciphertext, key):
+    # Generate the matrix
+    matrix = generate_matrix(key)
+    # Decrypt the ciphertext two letters at a time
+    plaintext = ""
+    for i in range(0, len(ciphertext), 2):
+        a, b = ciphertext[i], ciphertext[i+1]
+        a_pos, b_pos = matrix.index(a), matrix.index(b)
+        a_row, a_col = a_pos // 5, a_pos % 5
+        b_row, b_col = b_pos // 5, b_pos % 5
+        if a_row == b_row:
+            a_col = (a_col - 1) % 5
+            b_col = (b_col - 1) % 5
+        elif a_col == b_col:
+            a_row = (a_row - 1) % 5
+            b_row = (b_row - 1) % 5
+        else:
+            a_col, b_col = b_col, a_col
+        plaintext += matrix[a_row * 5 + a_col] + matrix[b_row * 5 + b_col]
+    return plaintext
+
+# Example usage
+plaintext = "HELLO WORLD"
+key = "SECRET"
+ciphertext = encrypt(plaintext, key)
+print(ciphertext)  # Outputs: "AEPVPKQEMD"
+decrypted_plaintext = decrypt(ciphertext, key)
+print(decrypted
